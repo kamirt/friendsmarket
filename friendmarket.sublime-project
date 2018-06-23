@@ -1,0 +1,13 @@
+{
+	"folders":
+	[
+		{
+			"path": "fm",
+			"folder_exclude_patterns": ["__pycache__", "migrations"]
+		},
+		{
+			"path": "friendmarket",
+			"folder_exclude_patterns": ["__pycache__"]
+		}
+	]
+}
