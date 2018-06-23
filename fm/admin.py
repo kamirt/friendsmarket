@@ -18,6 +18,20 @@ class DateRangeFilterFM(DateRangeFilter):
        print(self.used_parameters)
        return form_class(self.used_parameters)
 
+   def queryset(self, request, queryset):
+       if self.form.is_valid():
+           validated_data = dict(self.form.cleaned_data.items())
+           print(validated_data)
+           if validated_data.get('my_posts__created__gte'):
+               queryset = queryset.filter(
+                   my_posts__created__gte=validated_data.get('my_posts__created__gte') or date(1970, 1, 1),
+                   my_posts__created__lte=validated_data.get('my_posts__created__lte') or date.today(),
+                   )
+
+           return queryset.annotate(created_count=models.Count('my_posts')) \
+           .annotate(viewed_count=models.Count('posts_viewed'))
+       return queryset
+
    @staticmethod
    def get_js():
        return [
@@ -120,20 +134,14 @@ class PostInline(admin.TabularInline):
 
 @admin.register(User)
 class StatisticsAdmin(admin.ModelAdmin):
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.annotate(
-            created_count=models.Count('my_posts', distinct=True), \
-            viewed_count=models.Count('posts_viewed', distinct=True))# \
-            #.filter(my_posts__created__lt=date(2018, 1, 1))
-
+    
     def created_count(self, obj):
-        return obj.created_count
+        return obj.created_count or ''
 
     created_count.short_description = 'Написано постов'
 
     def viewed_count(self, obj):
-        return obj.viewed_count
+        return obj.viewed_count or ''
 
     viewed_count.short_description = 'Просмотрено постов'
 
